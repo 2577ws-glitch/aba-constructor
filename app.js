@@ -106,3 +106,5 @@ async function exportPDF(){document.activeElement&&document.activeElement.blur()
 $('bPdf').onclick=async()=>{const b=$('bPdf');b.disabled=true;b.textContent='⏳ PDF…';try{(await exportPDF()).save('aba-'+P.tpl+'.pdf')}catch(e){alert('Ошибка PDF: '+e)}b.disabled=false;b.textContent='📄 PDF'};
 window.onresize=()=>render();
 try{P=JSON.parse(localStorage.getItem('abaProject'))}catch(e){}if(!P||!P.tpl)P=newProject(1);syncUI();render();
+
+$('bSpec').onclick=()=>{const b=$('specBox');if(!b.hidden){b.hidden=true;$('bSpec').textContent='🔒 Специалист';return}const p=prompt('PIN специалиста');if(p===null)return;if(p.trim()==='123456789A'){b.hidden=false;$('bSpec').textContent='🔓 Закрыть'}else alert('Неверный PIN')};
