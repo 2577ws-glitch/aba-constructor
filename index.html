@@ -1,0 +1,32 @@
+<!DOCTYPE html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Конструктор ABA/PECS материалов</title><link rel="stylesheet" href="style.css"><style id="pagestyle"></style></head><body>
+<div id="ui">
+<header><b>Конструктор ABA / PECS</b>
+<button id="bPrint">🖨 Печать</button><button id="bPdf">📄 PDF</button><button id="bSave">💾 Сохранить JSON</button>
+<label class="btn">📂 Открыть JSON<input type="file" id="fLoad" accept=".json,application/json" hidden></label>
+<button id="bNew">✨ Сбросить шаблон</button></header>
+<div id="wrap"><aside>
+<label>Шаблон<select id="sTpl"></select></label>
+<label>Заголовок<input id="iTitle"></label>
+<div class="row"><label>Лист<select id="sPage"><option>A4</option><option>A5</option></select></label>
+<label>Ориентация<select id="sOrient"><option value="p">Книжная</option><option value="l">Альбомная</option></select></label></div>
+<div class="grp" id="gGrid"><div class="row"><label>Столбцы<input type="number" id="iCols" min="1" max="12"></label><label>Строки<input type="number" id="iRows" min="1" max="12"></label><label>Листов<input type="number" id="iPages" min="1" max="20"></label></div>
+<div class="row"><label>Ширина ячейки, мм (0 = авто)<input type="number" id="iW" min="0" max="200"></label><label>Высота, мм<input type="number" id="iH" min="0" max="200"></label></div>
+<div class="row"><button data-sz="90">9×9</button><button data-sz="70">7×7</button><button data-sz="50">5×5</button><button data-sz="40">4×4</button><button data-sz="0">Авто</button></div>
+<label>Рамки<select id="sFrame"><option value="black">Чёрная</option><option value="color">Цветная</option><option value="fitz">Ключ Фицджеральда</option><option value="none">Без рамки</option></select></label>
+<label id="lFc">Цвет рамки<input type="color" id="iFc"></label>
+<label class="chk"><input type="checkbox" id="cCut"> Линии разреза</label></div>
+<div class="grp" id="gTable"><label>Строк таблицы<input type="number" id="iRowsN" min="1" max="40"></label></div>
+<label>Размер шрифта подписи, pt<input type="number" id="iFs" min="8" max="48"></label>
+<div class="grp" id="gImgs"><b>Картинки</b> (нажмите картинку, затем ячейку, или перетащите)
+<label class="btn big">➕ Загрузить PNG/JPG<input type="file" id="fImg" accept="image/png,image/jpeg" multiple hidden></label>
+<button id="bFill">Заполнить пустые ячейки по порядку</button><div id="tray"></div></div>
+<div class="grp" id="gCell"><b>Ячейка <span id="cellNo"></span></b>
+<label>Подпись RU<textarea id="tRu" rows="2"></textarea></label><label>Подпись KZ<textarea id="tKz" rows="2"></textarea></label>
+<label>Категория (Фицджеральд)<select id="sFk"></select></label>
+<div class="row"><button id="bClrImg">Убрать картинку</button><button id="bClrCell">Очистить</button></div></div>
+<p class="hint">Проект автоматически хранится в браузере (localStorage).</p>
+</aside><main id="preview"></main></div></div>
+<div id="pages"></div>
+<script src="lib/jspdf.umd.min.js"></script><script src="lib/html2canvas.min.js"></script>
+<script src="templates.js"></script><script src="app.js"></script></body></html>
