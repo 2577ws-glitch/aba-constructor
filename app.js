@@ -107,4 +107,52 @@ $('bPdf').onclick=async()=>{const b=$('bPdf');b.disabled=true;b.textContent='⏳
 window.onresize=()=>render();
 try{P=JSON.parse(localStorage.getItem('abaProject'))}catch(e){}if(!P||!P.tpl)P=newProject(1);syncUI();render();
 
-$('bSpec').onclick=()=>{const b=$('specBox');if(!b.hidden){b.hidden=true;$('bSpec').textContent='🔒 Специалист';return}const p=prompt('PIN специалиста');if(p===null)return;if(p.trim()==='123456789A'){b.hidden=false;$('bSpec').textContent='🔓 Закрыть'}else alert('Неверный PIN')};
+
+/* PIN: encrypted, no default in source */
+const PIN_STORE='aba_pin_v1';
+function pinRec(){try{return JSON.parse(localStorage.getItem(PIN_STORE)||'null')}catch(e){return null}}
+async function hashPin(pin,salt){const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(salt+':'+pin));return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join('')}
+async function setPin(pin){const salt=crypto.getRandomValues(new Uint8Array(16)).reduce((s,b)=>s+b.toString(16).padStart(2,'0'),'');localStorage.setItem(PIN_STORE,JSON.stringify({salt,hash:await hashPin(pin,salt),v:1}))}
+async function checkPin(pin){const r=pinRec();if(!r)return false;return (await hashPin(pin,r.salt))===r.hash}
+function ensurePinModal(){
+  let m=document.getElementById('pinModal');
+  if(m)return m;
+  m=document.createElement('div');m.id='pinModal';
+  m.style.cssText='display:none;position:fixed;inset:0;background:#0007;z-index:50;align-items:center;justify-content:center';
+  m.innerHTML='<div id="pinBox" style="background:#fff;border-radius:12px;padding:16px;max-width:280px;width:90%"></div>';
+  document.body.appendChild(m);return m;
+}
+function pinPad(title,mode){return new Promise(resolve=>{
+  const m=ensurePinModal(),box=document.getElementById('pinBox');
+  m.style.display='flex';
+  box.innerHTML='<h3 style="margin:0 0 8px;font:600 16px sans-serif">'+title+'</h3><div id="pinDisp" style="font:28px/1.2 monospace;letter-spacing:6px;text-align:center;min-height:36px">· · · ·</div><div id="pinErr" style="color:#c00;font-size:13px;min-height:18px;text-align:center"></div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">'+
+    [1,2,3,4,5,6,7,8,9,'←',0,'OK'].map(k=>'<button type="button" data-k="'+k+'" style="font-size:20px;padding:12px 0;border:1px solid #ccc;border-radius:8px;background:#f8fafc">'+(k==='OK'?'✓':k)+'</button>').join('')+
+    '</div><p style="font-size:12px;color:#64748b;text-align:center">4–8 цифр</p><button id="pinCancel" style="width:100%;margin-top:6px;padding:8px">Отмена</button>';
+  let buf='',first='';
+  const disp=document.getElementById('pinDisp'),err=document.getElementById('pinErr');
+  const show=()=>{disp.textContent=buf?('•'.repeat(buf.length)):('· · · ·');err.textContent=''};
+  const close=()=>{m.style.display='none'};
+  document.getElementById('pinCancel').onclick=()=>{close();resolve(null)};
+  box.querySelectorAll('button[data-k]').forEach(b=>b.onclick=async()=>{
+    const k=b.dataset.k;
+    if(k==='←'){buf=buf.slice(0,-1);show();return}
+    if(k==='OK'){
+      if(buf.length<4||buf.length>8){err.textContent='Нужно 4–8 цифр';return}
+      if(mode==='setup'){
+        if(!first){first=buf;buf='';disp.textContent='ещё раз';return}
+        if(buf!==first){err.textContent='Не совпало';first='';buf='';show();return}
+        await setPin(buf);close();resolve(true);return
+      }
+      if(await checkPin(buf)){close();resolve(true)}else{err.textContent='Неверный PIN';buf='';show()}
+      return
+    }
+    if(buf.length>=8)return;buf+=k;show()
+  })
+})}
+async function ensurePin(){while(!pinRec()){if(!(await pinPad('Создайте PIN специалиста','setup')))alert('Нужен PIN для защиты настроек')}}
+let holdT=null,holdDone=false;
+$('bSpec').onpointerdown=e=>{const box=$('specBox');if(!box.hidden)return;holdDone=false;holdT=setTimeout(async()=>{holdDone=true;if(!(await pinPad('PIN специалиста','unlock')))return;box.hidden=false;$('bSpec').textContent='🔓 Закрыть'},3000)};
+$('bSpec').onpointerup=$('bSpec').onpointerleave=$('bSpec').onpointercancel=()=>{clearTimeout(holdT);holdT=null};
+$('bSpec').onclick=()=>{if(holdDone){holdDone=false;return}const box=$('specBox');if(!box.hidden){box.hidden=true;$('bSpec').textContent='🔒 Специалист'}};
+ensurePin();
+
