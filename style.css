@@ -104,3 +104,5 @@ aside .row{align-items:end}
 .capTop .cap{border-top:0;border-bottom:0.3mm solid #000}
 .page h1,.page h2,.page .ttl{font-family:"Nunito","Segoe UI",Arial,sans-serif;font-weight:900;letter-spacing:.01em}
 .ptitle{font-family:"Nunito","Segoe UI",Arial,sans-serif!important;font-weight:900!important;letter-spacing:.01em}svg.extra{font-family:"Nunito",Arial,sans-serif;font-weight:800}
+.lang-sw{display:inline-flex;gap:4px}.lang-sw [aria-pressed="true"]{background:var(--green);border-color:var(--green);color:#fff}
+#libRes{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:6px;max-height:260px;overflow:auto;margin:6px 0}#libRes:empty{display:none}.lib-it{flex-direction:column;padding:4px;min-height:0;gap:2px;font-size:.7rem;line-height:1.1}.lib-it img{width:100%;aspect-ratio:1;object-fit:contain}
