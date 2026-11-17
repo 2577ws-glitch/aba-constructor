@@ -1,3 +1,4 @@
+[hidden]{display:none!important}
 /* AYMABA — конструктор. Стиль как на главной и в библиотеке (vivamusz.github.io/aymaba). */
 :root{--green:#1f7a6d;--green-dark:#165c52;--green-soft:#e3f2ee;--sand:#fbf6ee;--bg:#f7f3ec;--peach:#f6c177;--coral:#e46f45;--ink:#1f2a2e;--ink2:#1a1612;--muted:#5b6b70;--line:#e6ddd0;--r:18px;--shadow:0 6px 20px rgba(60,45,20,.08)}
 *{box-sizing:border-box}
