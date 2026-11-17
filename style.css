@@ -93,3 +93,14 @@ img,.img,.cell,#tray{-webkit-touch-callout:none}img{-webkit-user-drag:none;user-
 @media print{.aym-pill{display:none!important}}
 @media (max-width:600px){.aym-pill{margin:0 0 8px 0}}
 .aym-pill{position:relative;z-index:61}.toolbar .tb-title{margin-right:auto}
+
+@font-face{font-family:"Nunito";src:url("fonts/Nunito.ttf") format("truetype");font-weight:200 1000;font-display:swap}
+aside .row{align-items:end}
+.ico-plus{vertical-align:-4px;margin-right:4px}
+/* подписи на листах: чёрно-белые, без заливок, экономия краски */
+.cell,.page{font-family:"Nunito","Segoe UI",Arial,sans-serif}
+.cap{font-weight:800;letter-spacing:.02em;line-height:1.12;padding:1mm 1.2mm 1.4mm;margin:0 2mm;border-top:0.3mm solid #000;color:#000}
+.noImg .cap{border-top:0;margin:0;font-weight:600}
+.capTop .cap{border-top:0;border-bottom:0.3mm solid #000}
+.page h1,.page h2,.page .ttl{font-family:"Nunito","Segoe UI",Arial,sans-serif;font-weight:900;letter-spacing:.01em}
+.ptitle{font-family:"Nunito","Segoe UI",Arial,sans-serif!important;font-weight:900!important;letter-spacing:.01em}svg.extra{font-family:"Nunito",Arial,sans-serif;font-weight:800}
