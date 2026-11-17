@@ -149,10 +149,10 @@ function pinPad(title,mode){return new Promise(resolve=>{
     if(buf.length>=8)return;buf+=k;show()
   })
 })}
-async function ensurePin(){while(!pinRec()){if(!(await pinPad('Создайте PIN специалиста','setup')))alert('Нужен PIN для защиты настроек')}}
+/* PIN спрашивается только при входе в «🔒 Специалист»; первый раз — создать, «Отмена» просто закрывает окно */
+async function askPin(){if(!pinRec())return !!(await pinPad('Создайте PIN специалиста','setup'))&&!!pinRec();return !!(await pinPad('PIN специалиста','unlock'))}
 let holdT=null,holdDone=false;
-$('bSpec').onpointerdown=e=>{const box=$('specBox');if(!box.hidden)return;holdDone=false;holdT=setTimeout(async()=>{holdDone=true;if(!(await pinPad('PIN специалиста','unlock')))return;box.hidden=false;$('bSpec').textContent='🔓 Закрыть'},3000)};
+$('bSpec').onpointerdown=e=>{const box=$('specBox');if(!box.hidden)return;holdDone=false;holdT=setTimeout(async()=>{holdDone=true;if(!(await askPin()))return;box.hidden=false;$('bSpec').textContent='🔓 Закрыть'},3000)};
 $('bSpec').onpointerup=$('bSpec').onpointerleave=$('bSpec').onpointercancel=()=>{clearTimeout(holdT);holdT=null};
 $('bSpec').onclick=()=>{if(holdDone){holdDone=false;return}const box=$('specBox');if(!box.hidden){box.hidden=true;$('bSpec').textContent='🔒 Специалист'}};
-ensurePin();
 
