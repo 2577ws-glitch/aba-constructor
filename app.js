@@ -102,17 +102,17 @@ function render(){const t=tpl(),np=t.kind=='table'||t.kind=='svg'?1:P.pages;fitC
  fitAll(pv);$('pagestyle').textContent=`@page{size:${P.page} ${P.orient=='l'?'landscape':'portrait'};margin:0}`;
  $('gGrid').style.display=$('gImgs').style.display=t.kind?'none':'';$('bLib').style.display=t.kind?'none':'';$('gTable').style.display=t.kind=='table'?'':'none';$('gCell').style.display=sel>=0&&!t.kind?'':'none';$('lFc').style.display=P.frame=='color'?'':'none';
  $('tray').innerHTML=P.images.map((s,i)=>`<img src="${s}" data-im="${i}" draggable="true" class="${i===selImg?'sel':''}">`).join('');save()}
-function syncUI(){$('sTpl').value=P.tpl;['title','page','orient','cols','rows','pages','w','h','frame','fc','fs','rowsN'].forEach(k=>{const el=document.querySelector(`[data-p="${k}"]`);if(el)el.value=P[k]});$('cCut').checked=P.cut;showCell()}
+function syncUI(){$('sTpl').value=P.tpl;['title','page','orient','cols','rows','pages','w','h','frame','fc','fs','rowsN'].forEach(k=>{const el=document.querySelector(`[data-p="${k}"]`);if(el)el.value=k=='title'?L(P[k]):P[k]});$('cCut').checked=P.cut;showCell()}
 function showCell(){if(sel<0||!P.cells[sel])return;const e=P.cells[sel];$('cellNo').textContent='№'+(sel+1);$('tRu').value=e.ru;$('tKz').value=e.kz;$('sFk').value=e.fk}
 function save(){try{localStorage.setItem('abaProject',JSON.stringify(P))}catch(e){console.warn('localStorage full')}}
 // ---------- events ----------
 $('sTpl').innerHTML=[...new Set(T.map(t=>t.g))].map(g=>`<optgroup label="${esc(g)}">`+T.filter(t=>t.g==g).map(t=>`<option value="${t.id}">${t.id}. ${esc(t.name)}</option>`).join('')+'</optgroup>').join('');
-function setLang(l){LANG=l==='kz'?'kz':'ru';try{localStorage.setItem('abaLang',LANG)}catch(e){}document.querySelectorAll('#langSw [data-lang]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.lang===LANG));if(P)render();if(typeof UI!=='undefined'&&UI)libLang()}
+function setLang(l){LANG=l==='kz'?'kz':'ru';try{localStorage.setItem('abaLang',LANG)}catch(e){}document.querySelectorAll('#langSw [data-lang]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.lang===LANG));if(P)render();if(typeof UI!=='undefined'&&UI)libLang();chrome()}
 document.querySelectorAll('#langSw [data-lang]').forEach(b=>b.onclick=()=>setLang(b.dataset.lang));setLang(LANG);$('sFk').innerHTML=FK.map(f=>`<option value="${f[0]}">${f[1]}</option>`).join('');
 [['iTitle','title'],['sPage','page'],['sOrient','orient'],['iCols','cols'],['iRows','rows'],['iPages','pages'],['iW','w'],['iH','h'],['sFrame','frame'],['iFc','fc'],['iFs','fs'],['iRowsN','rowsN']].forEach(([id,k])=>{const el=$(id);el.dataset.p=k;el.oninput=()=>{P[k]=el.type=='number'?Math.max(+el.min||0,+el.value||0):el.value;render()}});
 $('cCut').onchange=e=>{P.cut=e.target.checked;render()};
 document.querySelectorAll('[data-sz]').forEach(b=>b.onclick=()=>{P.w=P.h=+b.dataset.sz;syncUI();render()});
-$('sTpl').onchange=e=>{P=newProject(+e.target.value);sel=-1;syncUI();render()};$('bNew').onclick=()=>{if(confirm('Сбросить текущий шаблон?')){const im=P.images;P=newProject(P.tpl);P.images=im;sel=-1;syncUI();render()}};
+$('sTpl').onchange=e=>{P=newProject(+e.target.value);sel=-1;syncUI();render()};$('bNew').onclick=()=>{if(confirm(chT('Сбросить текущий шаблон?'))){const im=P.images;P=newProject(P.tpl);P.images=im;sel=-1;syncUI();render()}};
 function addFiles(files,cb){[...files].filter(f=>/image\/(png|jpe?g)/.test(f.type)).forEach(f=>{const r=new FileReader();r.onload=()=>{P.images.push(r.result);cb&&cb(P.images.length-1);render()};r.readAsDataURL(f)})}
 $('fImg').onchange=e=>{addFiles(e.target.files);e.target.value=''};
 $('tray').onclick=e=>{if(e.target.dataset.im!=null){selImg=+e.target.dataset.im;if(sel>=0){P.cells[sel].img=selImg;}render()}};
@@ -127,7 +127,7 @@ $('tRu').oninput=e=>{P.cells[sel].ru=e.target.value;render()};$('tKz').oninput=e
 $('bClrImg').onclick=()=>{P.cells[sel].img=null;render()};$('bClrCell').onclick=()=>{Object.assign(P.cells[sel],{ru:'',kz:'',fk:'',img:null});showCell();render()};
 $('bPrint').onclick=()=>{document.activeElement&&document.activeElement.blur();render();const bx=$('pages');bx.style.cssText='display:block;position:absolute;left:-10000px;top:0';fitAll(bx);bx.style.cssText='';window.print()};
 $('bSave').onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(P)],{type:'application/json'}));a.download='aba-'+P.tpl+'.json';a.click()};
-$('fLoad').onchange=e=>{const f=e.target.files[0];if(!f)return;f.text().then(s=>{try{P=JSON.parse(s);sel=-1;syncUI();render()}catch(x){alert('Неверный файл')}});e.target.value=''};
+$('fLoad').onchange=e=>{const f=e.target.files[0];if(!f)return;f.text().then(s=>{try{P=JSON.parse(s);sel=-1;syncUI();render()}catch(x){alert(chT('Неверный файл'))}});e.target.value=''};
 /* Автоподбор размера шрифта: казахские слова часто длиннее — текст не обрезается, слова не меняются.
    Подписи ячеек и заголовки таблиц уменьшаются, пока слово не влезет по ширине; надписи в рисунках (SVG) — пока не влезут в рисунок;
    заголовок листа — если лист переполнен по высоте. */
@@ -166,7 +166,7 @@ async function exportDocx(){const [W,H]=pageMM(),cs=await pageCanvases(),enc=new
   `<w:sectPr><w:pgSz w:w="${tw(W)}" w:h="${tw(H)}"${P.orient=='l'?' w:orient="landscape"':''}/><w:pgMar w:top="0" w:right="0" w:bottom="0" w:left="0" w:header="0" w:footer="0" w:gutter="0"/></w:sectPr></w:body></w:document>`);
  return fflate.zipSync(files)}
 function fileName(ext){return 'aymaba-'+P.tpl+'-'+LANG+'.'+ext}
-$('bPdf').onclick=async()=>{const b=$('bPdf'),t=b.textContent;b.disabled=true;b.textContent='⏳ PDF…';try{(await exportPDF()).save(fileName('pdf'))}catch(e){alert('Ошибка PDF: '+e)}b.disabled=false;b.textContent=t};
+$('bPdf').onclick=async()=>{const b=$('bPdf'),t=b.textContent;b.disabled=true;b.textContent=chT('⏳ PDF…');try{(await exportPDF()).save(fileName('pdf'))}catch(e){alert(chMsg('Ошибка PDF: {сообщение}',e))}b.disabled=false;b.textContent=t};
 $('bWord').onclick=async()=>{const b=$('bWord'),t=b.textContent;b.disabled=true;b.textContent='⏳ Word…';try{const z=await exportDocx(),a=document.createElement('a');a.href=URL.createObjectURL(new Blob([z],{type:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'}));a.download=fileName('docx');a.click();setTimeout(()=>URL.revokeObjectURL(a.href),5000)}catch(e){alert('Ошибка Word: '+e)}b.disabled=false;b.textContent=t};
 /* ---------- картинки из библиотеки AYMABA (тот же поиск, что на странице печати: сразу по всем темам) ---------- */
 const LIB='https://vivamusz.github.io/aymaba/';let LIBD=null,libT=null;
@@ -252,7 +252,7 @@ function pinPad(title,mode){return new Promise(resolve=>{
   m.style.display='flex';
   box.innerHTML='<h3 style="margin:0 0 8px;font:600 16px sans-serif">'+title+'</h3><div id="pinDisp" style="font:28px/1.2 monospace;letter-spacing:6px;text-align:center;min-height:36px">· · · ·</div><div id="pinErr" style="color:#c00;font-size:13px;min-height:18px;text-align:center"></div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">'+
     [1,2,3,4,5,6,7,8,9,'←',0,'OK'].map(k=>'<button type="button" data-k="'+k+'" style="font-size:20px;padding:12px 0;border:1px solid #ccc;border-radius:8px;background:#f8fafc">'+(k==='OK'?'✓':k)+'</button>').join('')+
-    '</div><p style="font-size:12px;color:#64748b;text-align:center">4–8 цифр</p><button id="pinCancel" style="width:100%;margin-top:6px;padding:8px">Отмена</button>';
+    '</div><p style="font-size:12px;color:#64748b;text-align:center">'+chT('4–8 цифр')+'</p><button id="pinCancel" style="width:100%;margin-top:6px;padding:8px">'+chT('Отмена')+'</button>';
   let buf='',first='';
   const disp=document.getElementById('pinDisp'),err=document.getElementById('pinErr');
   const show=()=>{disp.textContent=buf?('•'.repeat(buf.length)):('· · · ·');err.textContent=''};
@@ -262,22 +262,36 @@ function pinPad(title,mode){return new Promise(resolve=>{
     const k=b.dataset.k;
     if(k==='←'){buf=buf.slice(0,-1);show();return}
     if(k==='OK'){
-      if(buf.length<4||buf.length>8){err.textContent='Нужно 4–8 цифр';return}
+      if(buf.length<4||buf.length>8){err.textContent=chT('Нужно 4–8 цифр');return}
       if(mode==='setup'){
-        if(!first){first=buf;buf='';disp.textContent='ещё раз';return}
-        if(buf!==first){err.textContent='Не совпало';first='';buf='';show();return}
+        if(!first){first=buf;buf='';disp.textContent=chT('ещё раз');return}
+        if(buf!==first){err.textContent=chT('Не совпало');first='';buf='';show();return}
         await setPin(buf);close();resolve(true);return
       }
-      if(await checkPin(buf)){close();resolve(true)}else{err.textContent='Неверный PIN';buf='';show()}
+      if(await checkPin(buf)){close();resolve(true)}else{err.textContent=chT('Неверный PIN');buf='';show()}
       return
     }
     if(buf.length>=8)return;buf+=k;show()
   })
 })}
 /* PIN спрашивается только при входе в «🔒 Специалист»; первый раз — создать, «Отмена» просто закрывает окно */
-async function askPin(){if(!pinRec())return !!(await pinPad('Создайте PIN специалиста','setup'))&&!!pinRec();return !!(await pinPad('PIN специалиста','unlock'))}
+async function askPin(){if(!pinRec())return !!(await pinPad(chT('Создайте PIN специалиста'),'setup'))&&!!pinRec();return !!(await pinPad(chT('PIN специалиста'),'unlock'))}
 let holdT=null,holdDone=false;
-$('bSpec').onpointerdown=e=>{const box=$('specBox');if(!box.hidden)return;holdDone=false;holdT=setTimeout(async()=>{holdDone=true;if(!(await askPin()))return;box.hidden=false;$('bSpec').textContent='🔓 Закрыть'},3000)};
+$('bSpec').onpointerdown=e=>{const box=$('specBox');if(!box.hidden)return;holdDone=false;holdT=setTimeout(async()=>{holdDone=true;if(!(await askPin()))return;box.hidden=false;$('bSpec').textContent=chT('🔓 Закрыть')},3000)};
 $('bSpec').onpointerup=$('bSpec').onpointerleave=$('bSpec').onpointercancel=()=>{clearTimeout(holdT);holdT=null};
-$('bSpec').onclick=()=>{if(holdDone){holdDone=false;return}const box=$('specBox');if(!box.hidden){box.hidden=true;$('bSpec').textContent='🔒 Специалист'}};
+$('bSpec').onclick=()=>{if(holdDone){holdDone=false;return}const box=$('specBox');if(!box.hidden){box.hidden=true;$('bSpec').textContent=chT('🔒 Специалист')}};
 
+
+/* KZ: интерфейс конструктора — только переводы пользователя: /workspace/aymaba_kk/interface_kk_constructor.json (без строк с PECS) + interface_kk_aymaba.csv (legal.back, nav.home/constructor/communicator). Чего нет в этих файлах — остаётся по-русски. */
+var CHR={"🖨 Печать": "🖨 Басып шығару", "📄 PDF": "📄 PDF", "⏳ PDF…": "⏳ PDF дайындалуда…", "🔒 Специалист": "🔒 Маман", "🔓 Закрыть": "🔓 Жабу", "💾 Сохранить JSON": "💾 JSON файлын сақтау", "📂 Открыть JSON": "📂 JSON файлын ашу", "✨ Сбросить шаблон": "✨ Үлгіні бастапқы күйге қайтару", "Сбросить текущий шаблон?": "Ағымдағы үлгіні бастапқы күйге қайтарғыңыз келе ме?", "Неверный файл": "Жарамсыз файл", "Ошибка PDF: {сообщение}": "PDF қатесі: {жеделхат}", "Шаблон": "Үлгі", "Заголовок": "Тақырып", "Лист": "Парақ", "A4": "A4", "A5": "A5", "Ориентация": "Парақтың бағыты", "Книжная": "Тік", "Альбомная": "Көлденең", "Столбцы": "Бағандар", "Строки": "Жолдар", "Листов": "Парақ саны", "Ширина ячейки, мм (0 = авто)": "Ұяшықтың ені, мм (0 = автоматты)", "Высота, мм": "Биіктігі, мм", "9×9": "9×9", "7×7": "7×7", "5×5": "5×5", "4×4": "4×4", "Авто": "Автоматты", "Рамки": "Жақтаулар", "Чёрная": "Қара", "Цветная": "Түрлі түсті", "Ключ Фицджеральда": "Фицджеральд түс кілті", "Без рамки": "Жақтаусыз", "Цвет рамки": "Жақтаудың түсі", "Линии разреза": "Қию сызықтары", "Строк таблицы": "Кесте жолдары", "Размер шрифта подписи, pt": "Жазу қарпінің өлшемі, пт", "Картинки": "Суреттер", "(нажмите картинку, затем ячейку, или перетащите)": "(алдымен суретті, содан кейін ұяшықты басыңыз немесе сүйреп апарыңыз)", "➕ Загрузить PNG/JPG": "➕ PNG/JPG жүктеу", "Заполнить пустые ячейки по порядку": "Бос ұяшықтарды ретімен толтыру", "Ячейка": "Ұяшық", "Подпись RU": "Орысша жазу", "Подпись KZ": "Қазақша жазу", "Категория (Фицджеральда)": "Санат (Фицджеральд жүйесі)", "Люди (жёлтый)": "Адамдар (сары)", "Действия (зелёный)": "Әрекеттер (жасыл)", "Описания (синий)": "Сипаттамалар (көк)", "Предметы (оранжевый)": "Заттар (қызғылт сары)", "Социальные (розовый)": "Әлеуметтік сөздер (қызғылт)", "Отрицание/стоп (красный)": "Болымсыздық/тоқтату (қызыл)", "Разное (белый)": "Басқалары (ақ)", "Убрать картинку": "Суретті алып тастау", "Очистить": "Тазалау", "Проект автоматически хранится в браузере (localStorage).": "Жоба браузерде автоматты түрде сақталады (localStorage).", "4–8 цифр": "4–8 цифр", "Отмена": "Болдырмау", "Нужно 4–8 цифр": "4–8 цифр енгізіңіз", "ещё раз": "қайта енгізіңіз", "Не совпало": "Сәйкес келмейді", "Неверный PIN": "PIN-код қате", "Создайте PIN специалиста": "Маманның PIN-кодын орнатыңыз", "Нужен PIN для защиты настроек": "Баптауларды қорғау үшін PIN-код қажет", "PIN специалиста": "Маманның PIN-коды", "← на главную": "← Басты бетке", "Главная": "Басты бет", "Конструктор": "Конструктор", "Коммуникатор": "Коммуникатор"};
+var CHE=/^([\s\u2190-\u2BFF\u{1F000}-\u{1FAFF}\uFE0F\u200D]*)([\s\S]*?)(\s*)$/u,CHK=null,CHB=null;
+function chMaps(){if(CHK)return;CHK={};CHB={};for(const r in CHR){const a=r.match(CHE)[2],b=CHR[r].match(CHE)[2];if(a&&b){CHK[a]=b;if(!(b in CHB))CHB[b]=a}}}
+function chT(s){if(typeof CHR==='undefined'||s==null)return s;chMaps();const m=String(s).match(CHE),c=m[2],k=LANG==='kz'?CHK[c]:CHB[c];return k!=null&&k!==c?m[1]+k+m[3]:s}
+function chMsg(ru,v){const k=LANG==='kz'&&typeof CHR!=='undefined'&&CHR[ru];return k?k.replace(/\{[^}]*\}/,v):ru.replace(/\{[^}]*\}/,v)}
+function tplList(){const s=$('sTpl'),v=s.value;s.innerHTML=[...new Set(T.map(t=>t.g))].map(g=>`<optgroup label="${esc(chT(g))}">`+T.filter(t=>t.g==g).map(t=>`<option value="${t.id}">${t.id}. ${esc(L(t.name))}</option>`).join('')+'</optgroup>').join('');if(v)s.value=v}
+function chrome(){if(typeof CHR==='undefined')return;tplList();if(P&&document.activeElement!==$('iTitle'))$('iTitle').value=L(P.title);
+ document.querySelectorAll('.toolbar,aside,.mob-nav,#pinModal').forEach(root=>{
+  const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,{acceptNode:n=>n.parentElement.closest('#langSw,#sTpl,#libRes,#tray,#cellNo')?2:1});let n;
+  while(n=w.nextNode()){const t=chT(n.data);if(t!==n.data)n.data=t}
+  root.querySelectorAll('[title],[placeholder],[aria-label],optgroup[label]').forEach(el=>{['title','placeholder','aria-label','label'].forEach(a=>{const v=el.getAttribute(a);if(v){const t=chT(v);if(t!==v)el.setAttribute(a,t)}})})})}
+chrome();
