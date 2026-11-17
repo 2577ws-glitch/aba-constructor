@@ -100,14 +100,14 @@ function render(){const t=tpl(),np=t.kind=='table'||t.kind=='svg'?1:P.pages;fitC
  $('pages').innerHTML=html;const pv=$('preview');const [a,b]=PS[P.page],Wmm=P.orient=='l'?b:a,Hmm=P.orient=='l'?a:b,px=Wmm*96/25.4,sc=Math.min(1,(pv.clientWidth-30)/px);
  pv.innerHTML=[...$('pages').children].map(p=>`<div class="pw" style="width:${px*sc}px;height:${Hmm*96/25.4*sc}px"><div style="transform:scale(${sc});transform-origin:0 0">${p.outerHTML}</div></div>`).join('');
  $('pagestyle').textContent=`@page{size:${P.page} ${P.orient=='l'?'landscape':'portrait'};margin:0}`;
- $('gGrid').style.display=$('gImgs').style.display=t.kind?'none':'';$('gTable').style.display=t.kind=='table'?'':'none';$('gCell').style.display=sel>=0&&!t.kind?'':'none';$('lFc').style.display=P.frame=='color'?'':'none';
+ $('gGrid').style.display=$('gImgs').style.display=t.kind?'none':'';$('bLib').style.display=t.kind?'none':'';$('gTable').style.display=t.kind=='table'?'':'none';$('gCell').style.display=sel>=0&&!t.kind?'':'none';$('lFc').style.display=P.frame=='color'?'':'none';
  $('tray').innerHTML=P.images.map((s,i)=>`<img src="${s}" data-im="${i}" draggable="true" class="${i===selImg?'sel':''}">`).join('');save()}
 function syncUI(){$('sTpl').value=P.tpl;['title','page','orient','cols','rows','pages','w','h','frame','fc','fs','rowsN'].forEach(k=>{const el=document.querySelector(`[data-p="${k}"]`);if(el)el.value=P[k]});$('cCut').checked=P.cut;showCell()}
 function showCell(){if(sel<0||!P.cells[sel])return;const e=P.cells[sel];$('cellNo').textContent='№'+(sel+1);$('tRu').value=e.ru;$('tKz').value=e.kz;$('sFk').value=e.fk}
 function save(){try{localStorage.setItem('abaProject',JSON.stringify(P))}catch(e){console.warn('localStorage full')}}
 // ---------- events ----------
 $('sTpl').innerHTML=[...new Set(T.map(t=>t.g))].map(g=>`<optgroup label="${esc(g)}">`+T.filter(t=>t.g==g).map(t=>`<option value="${t.id}">${t.id}. ${esc(t.name)}</option>`).join('')+'</optgroup>').join('');
-function setLang(l){LANG=l==='kz'?'kz':'ru';try{localStorage.setItem('abaLang',LANG)}catch(e){}document.querySelectorAll('#langSw [data-lang]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.lang===LANG));if(P)render()}
+function setLang(l){LANG=l==='kz'?'kz':'ru';try{localStorage.setItem('abaLang',LANG)}catch(e){}document.querySelectorAll('#langSw [data-lang]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.lang===LANG));if(P)render();if(typeof UI!=='undefined'&&UI)libLang()}
 document.querySelectorAll('#langSw [data-lang]').forEach(b=>b.onclick=()=>setLang(b.dataset.lang));setLang(LANG);$('sFk').innerHTML=FK.map(f=>`<option value="${f[0]}">${f[1]}</option>`).join('');
 [['iTitle','title'],['sPage','page'],['sOrient','orient'],['iCols','cols'],['iRows','rows'],['iPages','pages'],['iW','w'],['iH','h'],['sFrame','frame'],['iFc','fc'],['iFs','fs'],['iRowsN','rowsN']].forEach(([id,k])=>{const el=$(id);el.dataset.p=k;el.oninput=()=>{P[k]=el.type=='number'?Math.max(+el.min||0,+el.value||0):el.value;render()}});
 $('cCut').onchange=e=>{P.cut=e.target.checked;render()};
@@ -154,14 +154,57 @@ $('bWord').onclick=async()=>{const b=$('bWord'),t=b.textContent;b.disabled=true;
 const LIB='https://vivamusz.github.io/aymaba/';let LIBD=null,libT=null;
 const norm=s=>(s||'').toLowerCase().replace(/ё/g,'е').trim();
 async function libLoad(){if(LIBD)return LIBD;try{const r=await fetch(LIB+'data/cards.json?v=kk1');LIBD=await r.json()}catch(e){LIBD={cards:[],categories:[],err:1}}return LIBD}
-async function libSearch(){const q=norm($('libQ').value),box=$('libRes');if(!q){box.innerHTML='';return}const d=await libLoad();
+async function libSearch(){const q=norm($('libQ').value),box=$('libRes');const d=await libLoad();
  if(d.err){box.innerHTML='<p class="hint">Библиотека сейчас недоступна. Проверьте интернет.</p>';return}
- const cats=d.categories.filter(c=>norm(c.ru).includes(q)||norm(c.kk).includes(q)).map(c=>c.num);
- const hits=d.cards.filter(c=>norm(c.ru).includes(q)||norm(c.kk).includes(q)||cats.includes(c.cat)).sort((a,b)=>(norm(b.ru).startsWith(q))-(norm(a.ru).startsWith(q))).slice(0,48);
+ const cats=q?d.categories.filter(c=>norm(c.ru).includes(q)||norm(c.kk).includes(q)).map(c=>c.num):[];
+ const first=d.categories[0]&&d.categories[0].num;const hits=d.cards.filter(c=>q?(norm(c.ru).includes(q)||norm(c.kk).includes(q)||cats.includes(c.cat)):c.cat===first).sort((a,b)=>(norm(b.ru).startsWith(q))-(norm(a.ru).startsWith(q))).slice(0,48);
  box.innerHTML=hits.length?hits.map(c=>`<button type="button" class="lib-it" data-id="${esc(c.id)}" data-ru="${esc(c.ru)}" data-kk="${esc(c.kk||'')}" title="${esc(LANG==='kz'&&c.kk?c.kk:c.ru)}"><img src="${LIB}cards/${esc(c.id)}.webp" alt="" loading="lazy" draggable="false"><span>${esc(LANG==='kz'&&c.kk?c.kk:c.ru)}</span></button>`).join(''):'<p class="hint">Ничего не нашлось.</p>'}
-$('libQ').oninput=()=>{clearTimeout(libT);libT=setTimeout(libSearch,200)};$('libQ').onfocus=libLoad;
-$('libRes').onclick=e=>{const it=e.target.closest('.lib-it');if(!it)return;const url=LIB+'print/'+it.dataset.id+'.webp';let ix=P.images.indexOf(url);if(ix<0){P.images.push(url);ix=P.images.length-1}selImg=ix;
- const cell=sel>=0?P.cells[sel]:P.cells.find(c=>c.img==null&&!tpl().kind);if(cell){cell.img=ix;if(!cell.ru)cell.ru=it.dataset.ru.charAt(0).toUpperCase()+it.dataset.ru.slice(1);if(!cell.kz&&it.dataset.kk)cell.kz=it.dataset.kk.charAt(0).toUpperCase()+it.dataset.kk.slice(1)}showCell();render()};
+$('libQ').oninput=()=>{clearTimeout(libT);libT=setTimeout(libSearch,200)};$('libQ').onfocus=()=>{if(!$('libRes').children.length)libSearch()};
+$('libRes').onclick=e=>{const it=e.target.closest('.lib-it');if(!it)return;const c=(LIBD&&LIBD.cards||[]).find(x=>x.id===it.dataset.id);if(c)libAdd([c])};
+/* ---- Окно «Из библиотеки»: темы слева, поиск и сетка справа; щелчок — сразу в ячейку, галочки — несколько сразу ---- */
+var UI={kz:{'Из библиотеки':'Кітапханадан','Поиск по слову':'Сөз бойынша іздеу','Закрыть':'Жабу'}};
+function U(s){return LANG==='kz'&&UI&&UI.kz[s]?UI.kz[s]:s}   // только строки с переводом пользователя; остальное — по-русски (см. kz_still_missing.xlsx)
+const capOf=c=>{const s=LANG==='kz'&&c.kk?c.kk:c.ru;return s.charAt(0).toUpperCase()+s.slice(1)};
+const up1=s=>s?s.charAt(0).toUpperCase()+s.slice(1):s;
+/* ставит карточки по порядку: сначала выбранная пустая ячейка, потом следующие пустые; если пустых нет — заменяет выбранную */
+function libAdd(list){if(tpl().kind||!list.length)return 0;let n=0;
+ list.forEach(c=>{let i=(sel>=0&&P.cells[sel]&&P.cells[sel].img==null)?sel:P.cells.findIndex(x=>x.img==null);
+  if(i<0){if(sel>=0&&list.length===1)i=sel;else return}
+  const url=LIB+'print/'+c.id+'.webp';let ix=P.images.indexOf(url);if(ix<0){P.images.push(url);ix=P.images.length-1}
+  const cell=P.cells[i];cell.img=ix;cell.ru=up1(c.ru);if(c.kk)cell.kz=up1(c.kk);selImg=ix;n++});
+ if(n){showCell();render()}libNote(n<list.length?'Свободных ячеек нет — добавьте строки или листы.':'');return n}
+let LM={cat:null,picked:new Set()};
+function libNote(t){const el=document.getElementById('lmNote');if(el)el.textContent=t}
+function lmBuild(){if($('libModal'))return;const m=document.createElement('div');m.id='libModal';m.className='lm';m.hidden=true;
+ m.innerHTML=`<div class="lm-back" data-x></div><div class="lm-box" role="dialog" aria-modal="true" aria-labelledby="lmTitle">
+ <div class="lm-head"><b id="lmTitle"></b><button type="button" class="btn-ghost" id="lmClose" data-x></button></div>
+ <div class="lm-body"><nav class="lm-cats" id="lmCats"></nav><div class="lm-main"><input type="search" id="lmQ" autocomplete="off"><p class="hint" id="lmHint">Нажмите картинку — она сразу встанет в следующую пустую ячейку. Галочками можно отметить несколько.</p><div class="lm-grid" id="lmGrid"></div></div></div>
+ <div class="lm-foot"><span class="hint" id="lmNote" aria-live="polite"></span><button type="button" class="btn-primary" id="lmAdd" disabled></button></div></div>`;
+ document.body.appendChild(m);
+ m.addEventListener('click',e=>{if(e.target.closest('[data-x]'))lmClose()});
+ $('lmQ').oninput=()=>{clearTimeout(libT);libT=setTimeout(lmGrid,150)};
+ $('lmCats').onclick=e=>{const b=e.target.closest('[data-cat]');if(!b)return;LM.cat=+b.dataset.cat;$('lmQ').value='';lmCats();lmGrid()};
+ $('lmGrid').onclick=e=>{const it=e.target.closest('.lm-it');if(!it)return;const c=LIBD.cards.find(x=>x.id===it.dataset.id);if(!c)return;
+  if(e.target.closest('.lm-chk')){LM.picked.has(c.id)?LM.picked.delete(c.id):LM.picked.add(c.id);it.classList.toggle('on',LM.picked.has(c.id));it.querySelector('.lm-chk').setAttribute('aria-checked',LM.picked.has(c.id));lmFoot();return}
+  if(libAdd([c])){it.classList.add('added');setTimeout(()=>it.classList.remove('added'),500)}};
+ $('lmAdd').onclick=()=>{const list=LIBD.cards.filter(c=>LM.picked.has(c.id));libAdd(list);LM.picked.clear();lmGrid();lmFoot()};
+ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('libModal').hidden)lmClose()})}
+function lmTexts(){$('lmTitle').textContent=U('Из библиотеки')+' AYMABA';$('lmClose').textContent=U('Закрыть');$('lmQ').placeholder=U('Поиск по слову');lmFoot()}
+function lmFoot(){const n=LM.picked.size;$('lmAdd').textContent=`Добавить выбранные (${n})`;$('lmAdd').disabled=!n}
+function lmCats(){$('lmCats').innerHTML=LIBD.categories.map(c=>`<button type="button" data-cat="${c.num}" aria-pressed="${c.num===LM.cat&&!$('lmQ').value?'true':'false'}">${esc(LANG==='kz'&&c.kk?c.kk:c.ru)} <small>${LIBD.cards.filter(x=>x.cat===c.num).length}</small></button>`).join('')}
+function lmGrid(){const q=norm($('lmQ').value);let list;
+ if(q){const cats=LIBD.categories.filter(c=>norm(c.ru).includes(q)||norm(c.kk).includes(q)).map(c=>c.num);list=LIBD.cards.filter(c=>norm(c.ru).includes(q)||norm(c.kk).includes(q)||cats.includes(c.cat)).sort((a,b)=>(norm(b.ru).startsWith(q)||norm(b.kk).startsWith(q))-(norm(a.ru).startsWith(q)||norm(a.kk).startsWith(q)))}
+ else list=LIBD.cards.filter(c=>c.cat===LM.cat);
+ lmCats();
+ $('lmGrid').innerHTML=list.length?list.map(c=>`<div class="lm-it${LM.picked.has(c.id)?' on':''}" data-id="${esc(c.id)}"><button type="button" class="lm-pic" title="${esc(capOf(c))}"><img src="${LIB}cards/${esc(c.id)}.webp" alt="" loading="lazy" draggable="false"><span>${esc(capOf(c))}</span></button><button type="button" class="lm-chk" role="checkbox" aria-checked="${LM.picked.has(c.id)}" aria-label="${esc(capOf(c))}" title="Отметить">✓</button></div>`).join(''):'<p class="hint">Ничего не нашлось.</p>'}
+async function lmOpen(){lmBuild();const m=$('libModal');m.hidden=false;document.body.classList.add('lm-open');lmTexts();libNote('');
+ $('lmGrid').innerHTML='<p class="hint">…</p>';const d=await libLoad();
+ if(d.err){$('lmGrid').innerHTML='<p class="hint">Библиотека сейчас недоступна. Проверьте интернет.</p>';return}
+ if(LM.cat==null&&d.categories.length)LM.cat=d.categories[0].num;lmGrid();setTimeout(()=>$('lmQ').focus({preventScroll:true}),30)}
+function lmClose(){$('libModal').hidden=true;document.body.classList.remove('lm-open')}
+function libLang(){libBtns();if($('libModal')&&!$('libModal').hidden){lmTexts();lmGrid()}if($('libRes').children.length&&LIBD)libSearch()}
+function libBtns(){document.querySelectorAll('[data-libbtn]').forEach(b=>{b.lastChild.textContent=' '+U('Из библиотеки')})}
+document.querySelectorAll('[data-libbtn]').forEach(b=>b.onclick=lmOpen);libBtns();
 window.onresize=()=>render();
 try{P=JSON.parse(localStorage.getItem('abaProject'))}catch(e){}if(!P||!P.tpl||P.v!==2||!T.some(t=>t.id==P.tpl))P=newProject(1);syncUI();render();
 
