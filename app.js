@@ -153,15 +153,15 @@ $('bWord').onclick=async()=>{const b=$('bWord'),t=b.textContent;b.disabled=true;
 /* ---------- картинки из библиотеки AYMABA (тот же поиск, что на странице печати: сразу по всем темам) ---------- */
 const LIB='https://vivamusz.github.io/aymaba/';let LIBD=null,libT=null;
 const norm=s=>(s||'').toLowerCase().replace(/ё/g,'е').trim();
-async function libLoad(){if(LIBD)return LIBD;try{const r=await fetch(LIB+'data/cards.json');LIBD=await r.json()}catch(e){LIBD={cards:[],categories:[],err:1}}return LIBD}
+async function libLoad(){if(LIBD)return LIBD;try{const r=await fetch(LIB+'data/cards.json?v=kk1');LIBD=await r.json()}catch(e){LIBD={cards:[],categories:[],err:1}}return LIBD}
 async function libSearch(){const q=norm($('libQ').value),box=$('libRes');if(!q){box.innerHTML='';return}const d=await libLoad();
  if(d.err){box.innerHTML='<p class="hint">Библиотека сейчас недоступна. Проверьте интернет.</p>';return}
- const cats=d.categories.filter(c=>norm(c.ru).includes(q)).map(c=>c.num);
- const hits=d.cards.filter(c=>norm(c.ru).includes(q)||cats.includes(c.cat)).sort((a,b)=>(norm(b.ru).startsWith(q))-(norm(a.ru).startsWith(q))).slice(0,48);
- box.innerHTML=hits.length?hits.map(c=>`<button type="button" class="lib-it" data-id="${esc(c.id)}" data-ru="${esc(c.ru)}" title="${esc(c.ru)}"><img src="${LIB}cards/${esc(c.id)}.webp" alt="" loading="lazy" draggable="false"><span>${esc(c.ru)}</span></button>`).join(''):'<p class="hint">Ничего не нашлось.</p>'}
+ const cats=d.categories.filter(c=>norm(c.ru).includes(q)||norm(c.kk).includes(q)).map(c=>c.num);
+ const hits=d.cards.filter(c=>norm(c.ru).includes(q)||norm(c.kk).includes(q)||cats.includes(c.cat)).sort((a,b)=>(norm(b.ru).startsWith(q))-(norm(a.ru).startsWith(q))).slice(0,48);
+ box.innerHTML=hits.length?hits.map(c=>`<button type="button" class="lib-it" data-id="${esc(c.id)}" data-ru="${esc(c.ru)}" data-kk="${esc(c.kk||'')}" title="${esc(LANG==='kz'&&c.kk?c.kk:c.ru)}"><img src="${LIB}cards/${esc(c.id)}.webp" alt="" loading="lazy" draggable="false"><span>${esc(LANG==='kz'&&c.kk?c.kk:c.ru)}</span></button>`).join(''):'<p class="hint">Ничего не нашлось.</p>'}
 $('libQ').oninput=()=>{clearTimeout(libT);libT=setTimeout(libSearch,200)};$('libQ').onfocus=libLoad;
 $('libRes').onclick=e=>{const it=e.target.closest('.lib-it');if(!it)return;const url=LIB+'print/'+it.dataset.id+'.webp';let ix=P.images.indexOf(url);if(ix<0){P.images.push(url);ix=P.images.length-1}selImg=ix;
- const cell=sel>=0?P.cells[sel]:P.cells.find(c=>c.img==null&&!tpl().kind);if(cell){cell.img=ix;if(!cell.ru)cell.ru=it.dataset.ru.charAt(0).toUpperCase()+it.dataset.ru.slice(1)}showCell();render()};
+ const cell=sel>=0?P.cells[sel]:P.cells.find(c=>c.img==null&&!tpl().kind);if(cell){cell.img=ix;if(!cell.ru)cell.ru=it.dataset.ru.charAt(0).toUpperCase()+it.dataset.ru.slice(1);if(!cell.kz&&it.dataset.kk)cell.kz=it.dataset.kk.charAt(0).toUpperCase()+it.dataset.kk.slice(1)}showCell();render()};
 window.onresize=()=>render();
 try{P=JSON.parse(localStorage.getItem('abaProject'))}catch(e){}if(!P||!P.tpl||P.v!==2||!T.some(t=>t.id==P.tpl))P=newProject(1);syncUI();render();
 

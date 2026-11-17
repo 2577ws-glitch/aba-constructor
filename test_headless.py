@@ -21,7 +21,7 @@ async def main():
           let out=-1,np=-1;if(pdf){const d=await exportPDF();out=d.output('arraybuffer').byteLength;np=d.getNumberOfPages()}return [n,c,out,np]}''',pdf)
         ok=r[0]>0 and r[1]>0 and (not pdf or (r[2]>3000 and r[3]==r[0]))
         if not ok: bad.append((lang,i,r))
-        if lang=='kz' and i in (2,3,6,38,30): await pg.screenshot(path=f'{SHOTS}/kz_{i:02d}.png')
+        if lang=="kz" and i in (1,2,3,4,5,13,15,30,38,43): await pg.screenshot(path=f'{SHOTS}/kz_{i:02d}.png')
         if lang=='ru' and (i in NEW or i in (3,29,30,46)): await pg.locator('#preview .pw').first.screenshot(path=f'{SHOTS}/ru_{i:02d}.png')
       print(lang,'done')
     for i in (2,16,30):
