@@ -1,13 +1,8 @@
 <!DOCTYPE html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="icon" href="aymaba-logo.svg">
 <title>AYMABA — конструктор ABA-материалов</title><link rel="stylesheet" href="style.css"><style id="pagestyle"></style></head><body>
 <a class="powered" href="https://wa.me/77782577877" target="_blank" rel="noopener noreferrer">powered by vivamusz</a>
-<header class="site-header" id="hdr"><div class="bar">
-<a class="brand aym-home" href="https://vivamusz.github.io/aymaba/" title="На главную AYMABA" aria-label="AYMABA — на главную"><img src="aymaba-logo.svg" alt="" width="36" height="36" draggable="false"><span>AYMABA</span></a>
-<button type="button" class="menu-toggle" aria-label="Меню" aria-expanded="false" aria-controls="site-nav"><span aria-hidden="true">☰</span> <span class="menu-label">Меню</span></button>
-<nav id="site-nav" class="nav" aria-label="Меню"><a href="https://vivamusz.github.io/aba-constructor/" aria-current="page">Конструктор</a><a href="https://vivamusz.github.io/pecs-aac/">Коммуникатор</a><a href="https://vivamusz.github.io/aymaba/library.html">Библиотека карточек</a><a href="https://vivamusz.github.io/aymaba/#sets">Наборы для печати</a><a href="https://vivamusz.github.io/aymaba/#pricing">Тарифы</a></nav>
-</div></header>
 <div id="ui">
-<div class="toolbar"><div class="tb-title"><b>Конструктор ABA</b><span class="tb-sub">Шаблон слева — готовый лист справа</span></div>
+<div class="toolbar"><a class="aym-pill" id="hdr" href="https://vivamusz.github.io/aymaba/" title="На главную AYMABA"><img src="aymaba-logo.svg" alt="" width="30" height="30" draggable="false"><span>AYMABA</span><small>← на главную</small></a><div class="tb-title"><b>Конструктор ABA</b><span class="tb-sub">Шаблон слева — готовый лист справа</span></div>
 <div class="tb-acts"><button id="bPrint" class="btn-primary">🖨 Печать</button><button id="bPdf" class="btn-ghost">📄 PDF</button><button id="bSpec">🔒 Специалист</button><span id="specBox" hidden><button id="bSave">💾 Сохранить JSON</button>
 <label class="btn">📂 Открыть JSON<input type="file" id="fLoad" accept=".json,application/json" hidden></label></span>
 <button id="bNew">✨ Сбросить шаблон</button></div></div>
@@ -37,5 +32,4 @@
 <script src="lib/jspdf.umd.min.js"></script><script src="lib/html2canvas.min.js"></script>
 <script src="templates.js"></script><script src="app.js"></script>
 <script>document.addEventListener('contextmenu',e=>{if(e.target.closest('img,.img,.cell,#tray'))e.preventDefault()});document.addEventListener('dragstart',e=>{if(e.target.tagName==='IMG'&&!e.target.closest('#tray'))e.preventDefault()});</script><nav class="mob-nav" aria-label="Разделы AYMABA"><a class="mob-item" href="https://vivamusz.github.io/aymaba/"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V21h-6v-6H9v6H3z"/></svg>Главная</a><a class="mob-item" href="https://vivamusz.github.io/aba-constructor/" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="8" height="8" rx="2"/><rect x="13" y="3" width="8" height="8" rx="2"/><rect x="3" y="13" width="8" height="8" rx="2"/><rect x="13" y="13" width="8" height="8" rx="2"/></svg>Конструктор</a><a class="mob-item" href="https://vivamusz.github.io/pecs-aac/"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/></svg>Коммуникатор</a><a class="mob-item" href="https://vivamusz.github.io/aymaba/library.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h5v16H5zM14 4l5 1-3 15-5-1z"/></svg>Библиотека</a></nav>
-<script>(function(){var t=document.querySelector('.menu-toggle'),n=document.getElementById('site-nav');if(t&&n)t.onclick=function(){var o=n.classList.toggle('open');t.setAttribute('aria-expanded',o)}})();</script>
 </body></html>
