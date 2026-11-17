@@ -4,7 +4,7 @@ let P,sel=-1,selImg=null;
 /* Язык листа: шаблон печатается целиком на одном языке (RU или KZ). KZ берётся из словаря KK (templates.js), иначе — русский текст. */
 let LANG=(()=>{try{return localStorage.getItem('abaLang')==='kz'?'kz':'ru'}catch(e){return 'ru'}})();
 const L=s=>{s=String(s??'');return LANG==='kz'&&s&&KK[s]?KK[s]:s};
-function kzMissing(){const set=new Set(),add=x=>{x=String(x??'').trim();if(x&&!/^[\d\s.:–%-]+$/.test(x)&&!KK[x])set.add(x)};
+function kzMissing(){const set=new Set(),add=x=>{x=String(x??'').trim();if(x&&!/^[\d\s.:–%-]+$/.test(x)&&!/^\S(\s+\S)*$/.test(x)&&!KK[x])set.add(x)};
  T.forEach(t=>{add(t.name);add(t.title);(t.caps||[]).forEach(add);(t.rowLabels||[]).forEach(add);(t.colHeads||[]).forEach(add);(t.headers||[]).forEach(add);(t.col0||[]).forEach(add);Object.values(t.colv||{}).flat().forEach(add);add(t.legend);add(t.notes);add(t.extraText)});
  SVG_TXT.forEach(add);return [...set]}
 function newProject(id){const t=T.find(x=>x.id==id);const n=(t.cols||0)*(t.rows||0)*(t.pages||1);
@@ -23,7 +23,7 @@ const SVG_TXT=['ЖАРКО','ТЕПЛО','ХОЛОДНО','Зима','Весна
 function sectors(cx,cy,r,labels,acc,fs){let s='',n=labels.length;labels.forEach((l,i)=>{const a0=2*Math.PI*i/n-Math.PI/2,a1=2*Math.PI*(i+1)/n-Math.PI/2,am=(a0+a1)/2,P=(a,rr)=>`${cx+rr*Math.cos(a)},${cy+rr*Math.sin(a)}`;
  s+=`<path d="M${cx},${cy} L${P(a0,r)} A${r},${r} 0 0 1 ${P(a1,r)} Z" fill="#fff" stroke="#000" stroke-width="0.5"/>`;
  if(acc&&acc[i])s+=`<path d="M${P(a0+0.04,r-1.6)} A${r-1.6},${r-1.6} 0 0 1 ${P(a1-0.04,r-1.6)}" fill="none" stroke="${acc[i]}" stroke-width="2.2"/>`;
- s+=`<text x="${cx+r*.62*Math.cos(am)}" y="${cy+r*.62*Math.sin(am)}" font-size="${fs}" text-anchor="middle" dominant-baseline="middle">${esc(L(l))}</text>`});
+ s+=`<text x="${cx+r*.62*Math.cos(am)}" y="${cy+r*.62*Math.sin(am)}" font-size="${fs}" text-anchor="middle" dominant-baseline="middle" data-mw="${(2*r*.62*Math.sin(Math.PI/n)*.7).toFixed(1)}">${esc(L(l))}</text>`});
  return s+`<circle cx="${cx}" cy="${cy}" r="2" fill="#000"/>`}
 const EX={
 weather:(W,H)=>{const h=Math.min(90,H),tb=h-15;let tk='';for(let i=0;i<=10;i++){const y=5+4+i*(tb-14)/10;tk+=`<line x1="26" y1="${y}" x2="${i%5?29:32}" y2="${y}" stroke="${i<4?'#d62828':i>6?'#1d6fd6':'#000'}" stroke-width="0.6"/>`}
@@ -46,7 +46,7 @@ tracing:(W,H)=>{const rh=(H-5)/6;let s='',d=`stroke="#666" stroke-width="1" stro
   s+=`<circle cx="8" cy="${k==2?y+rh/4:y}" r="2.5" fill="#000"/><path d="${p}" ${d}/>`}
  return {h:H,svg:svg(W,H,s)}},
 maze:(W,H)=>{const c=W/2,y=H/2;let p=(sgn)=>`M${c},${y} C${c+sgn*W*.15},${y-H*.45} ${c+sgn*W*.25},${y+H*.45} ${c+sgn*W*.35},${y} S${c+sgn*W*.42},${y-H*.3} ${c+sgn*(W/2-8)},${y-H*.3}`;
- return {h:H,svg:svg(W,H,[1,-1].map(s=>`<path d="${p(s)}" stroke="#000" stroke-width="15" fill="none" stroke-linecap="round"/><path d="${p(s)}" stroke="#fff" stroke-width="13" fill="none" stroke-linecap="round"/><path d="${p(s)}" stroke="#666" stroke-width="0.8" stroke-dasharray="3 2" fill="none"/><text x="${c+s*(W/2-8)}" y="${y-H*.3-10}" font-size="6" text-anchor="middle">${L('ФИНИШ')}</text>`).join('')+`<circle cx="${c}" cy="${y}" r="5" fill="none" stroke="#000" stroke-width="1"/><text x="${c}" y="${y+14}" font-size="6" text-anchor="middle">${L('СТАРТ')}</text>`)}},
+ return {h:H,svg:svg(W,H,[1,-1].map(s=>`<path d="${p(s)}" stroke="#000" stroke-width="15" fill="none" stroke-linecap="round"/><path d="${p(s)}" stroke="#fff" stroke-width="13" fill="none" stroke-linecap="round"/><path d="${p(s)}" stroke="#666" stroke-width="0.8" stroke-dasharray="3 2" fill="none"/><text x="${c+s*(W/2-12)}" y="${y-H*.3-10}" font-size="6" text-anchor="middle">${L('ФИНИШ')}</text>`).join('')+`<circle cx="${c}" cy="${y}" r="5" fill="none" stroke="#000" stroke-width="1"/><text x="${c}" y="${y+14}" font-size="6" text-anchor="middle">${L('СТАРТ')}</text>`)}},
 eight:(W,H)=>{const a=W/2-12,c=W/2,y=H/2;let p='';for(let t=0;t<=6.3;t+=0.05){const s=Math.sin(t),k=1+s*s;p+=(t?'L':'M')+(c+a*Math.cos(t)/k)+','+(y+a*Math.sin(t)*Math.cos(t)/k*1.3)+' '}
  return {h:H,svg:svg(W,H,`<path d="${p}Z" stroke="#000" stroke-width="19" fill="none"/><path d="${p}Z" stroke="#fff" stroke-width="17" fill="none"/><path d="${p}Z" stroke="#555" stroke-width="1" stroke-dasharray="4 3" fill="none"/><circle cx="${c}" cy="${y}" r="3" fill="#000"/>`)}},
 geo:(W,H)=>{let s='',bw=(W-10)/2,bh=(H-50)/2;const figs=['M0,0 L4,0 L4,4 L0,4Z','M2,0 L4,4 L0,4Z','M0,2 L2,0 L4,2 L2,4Z','M0,4 L1,0 L3,0 L4,4Z'];
@@ -99,7 +99,7 @@ function pageHTML(pi){const t=tpl(),[a,b]=PS[P.page],W=P.orient=='l'?b:a,H=P.ori
 function render(){const t=tpl(),np=t.kind=='table'||t.kind=='svg'?1:P.pages;fitCells();let html='';for(let i=0;i<np;i++)html+=pageHTML(i);
  $('pages').innerHTML=html;const pv=$('preview');const [a,b]=PS[P.page],Wmm=P.orient=='l'?b:a,Hmm=P.orient=='l'?a:b,px=Wmm*96/25.4,sc=Math.min(1,(pv.clientWidth-30)/px);
  pv.innerHTML=[...$('pages').children].map(p=>`<div class="pw" style="width:${px*sc}px;height:${Hmm*96/25.4*sc}px"><div style="transform:scale(${sc});transform-origin:0 0">${p.outerHTML}</div></div>`).join('');
- $('pagestyle').textContent=`@page{size:${P.page} ${P.orient=='l'?'landscape':'portrait'};margin:0}`;
+ fitAll(pv);$('pagestyle').textContent=`@page{size:${P.page} ${P.orient=='l'?'landscape':'portrait'};margin:0}`;
  $('gGrid').style.display=$('gImgs').style.display=t.kind?'none':'';$('bLib').style.display=t.kind?'none':'';$('gTable').style.display=t.kind=='table'?'':'none';$('gCell').style.display=sel>=0&&!t.kind?'':'none';$('lFc').style.display=P.frame=='color'?'':'none';
  $('tray').innerHTML=P.images.map((s,i)=>`<img src="${s}" data-im="${i}" draggable="true" class="${i===selImg?'sel':''}">`).join('');save()}
 function syncUI(){$('sTpl').value=P.tpl;['title','page','orient','cols','rows','pages','w','h','frame','fc','fs','rowsN'].forEach(k=>{const el=document.querySelector(`[data-p="${k}"]`);if(el)el.value=P[k]});$('cCut').checked=P.cut;showCell()}
@@ -125,12 +125,30 @@ pv.addEventListener('focusout',e=>{const d=e.target.dataset;if(!d)return;const v
  if(d.k){if(v!==L(P.title)){P.title=v;$('iTitle').value=v}}else if(d.h!=null){if(v!==L(P.headers[d.h]))P.headers[d.h]=v}else if(d.r!=null){const t=tpl(),r=+d.r,c=+d.c,cur=(P.table[r]||[])[c];const def=cur??(c==0&&t.col0?(t.col0[r]||''):(t.colv&&t.colv[c]?(t.colv[c][r]||''):''));if(v!==L(def))(P.table[r]=P.table[r]||[])[c]=v}save()});
 $('tRu').oninput=e=>{P.cells[sel].ru=e.target.value;render()};$('tKz').oninput=e=>{P.cells[sel].kz=e.target.value;render()};$('sFk').onchange=e=>{P.cells[sel].fk=e.target.value;if(P.frame!='fitz'){P.frame='fitz';syncUI()}render()};
 $('bClrImg').onclick=()=>{P.cells[sel].img=null;render()};$('bClrCell').onclick=()=>{Object.assign(P.cells[sel],{ru:'',kz:'',fk:'',img:null});showCell();render()};
-$('bPrint').onclick=()=>{document.activeElement&&document.activeElement.blur();render();window.print()};
+$('bPrint').onclick=()=>{document.activeElement&&document.activeElement.blur();render();const bx=$('pages');bx.style.cssText='display:block;position:absolute;left:-10000px;top:0';fitAll(bx);bx.style.cssText='';window.print()};
 $('bSave').onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(P)],{type:'application/json'}));a.download='aba-'+P.tpl+'.json';a.click()};
 $('fLoad').onchange=e=>{const f=e.target.files[0];if(!f)return;f.text().then(s=>{try{P=JSON.parse(s);sel=-1;syncUI();render()}catch(x){alert('Неверный файл')}});e.target.value=''};
+/* Автоподбор размера шрифта: казахские слова часто длиннее — текст не обрезается, слова не меняются.
+   Подписи ячеек и заголовки таблиц уменьшаются, пока слово не влезет по ширине; надписи в рисунках (SVG) — пока не влезут в рисунок;
+   заголовок листа — если лист переполнен по высоте. */
+function fitAll(root){if(!root)return;
+ const rg=document.createRange();
+ const over=(el,box)=>{rg.selectNodeContents(el);const r=rg.getBoundingClientRect(),b=box.getBoundingClientRect();return r.width&&(r.left<b.left-0.5||r.right>b.right+0.5)};
+ root.querySelectorAll('.page').forEach(pg=>{
+  pg.querySelectorAll('.cap,th,td').forEach(el=>{if(!el.textContent.trim())return;const box=el.classList.contains('cap')?el.parentElement:el;if(!box.getBoundingClientRect().width)return;
+   let fs=parseFloat(getComputedStyle(el).fontSize),n=0;
+   while((over(el,box)||el.scrollWidth>el.clientWidth+1)&&fs>7&&n++<40){fs-=0.5;el.style.fontSize=fs+'px'}});
+  pg.querySelectorAll('svg.extra').forEach(s=>{const vb=s.viewBox&&s.viewBox.baseVal;const W=vb&&vb.width?vb.width:0;if(!W)return;
+   const rects=[...s.querySelectorAll('rect')].map(r=>({x:+r.getAttribute('x')||0,y:+r.getAttribute('y')||0,w:+r.getAttribute('width')||0,h:+r.getAttribute('height')||0})).filter(r=>r.w>12&&r.h>6);
+   s.querySelectorAll('text').forEach(t=>{const ax=+t.getAttribute('x')||0,ay=+t.getAttribute('y')||0;
+    const own=rects.filter(r=>ax>=r.x&&ax<=r.x+r.w&&ay>=r.y&&ay<=r.y+r.h).sort((p,q)=>p.w*p.h-q.w*q.h)[0];
+    const mw=+t.getAttribute('data-mw')||0;const L0=mw?ax-mw/2:own?own.x+1:0.5,R0=mw?ax+mw/2:own?own.x+own.w-1:W-1.5;let n=0,fs=parseFloat(t.getAttribute('font-size'))||6,bb;
+    while((bb=t.getBBox())&&bb.width&&(bb.x<L0||bb.x+bb.width>R0)&&fs>2.5&&n++<60){fs-=0.25;t.setAttribute('font-size',fs)}})});
+  const ti=pg.querySelector('.ptitle');if(ti){let fs=parseFloat(getComputedStyle(ti).fontSize),n=0;const ovr=()=>{const r=pg.getBoundingClientRect().bottom;let m=0;pg.querySelectorAll(':scope>*').forEach(e=>{m=Math.max(m,e.getBoundingClientRect().bottom)});return m>r+1};
+   while(ovr()&&fs>12&&n++<30){fs-=1;ti.style.fontSize=fs+'px'}}})}
 /* ---------- вывод: картинки листов в натуральную величину (A4/A5 1:1) ---------- */
 async function pageCanvases(){document.activeElement&&document.activeElement.blur();sel=-1;render();const box=$('pages');box.style.cssText='display:block;position:absolute;left:-10000px;top:0';
- try{if(document.fonts&&document.fonts.ready)await document.fonts.ready;const out=[];for(const pg of [...box.children])out.push(await html2canvas(pg,{scale:2.5,backgroundColor:'#fff',useCORS:true}));return out}finally{box.style.cssText=''}}
+ try{if(document.fonts&&document.fonts.ready)await document.fonts.ready;fitAll(box);const out=[];for(const pg of [...box.children])out.push(await html2canvas(pg,{scale:2.5,backgroundColor:'#fff',useCORS:true}));return out}finally{box.style.cssText=''}}
 function pageMM(){const [a,b]=PS[P.page];return P.orient=='l'?[b,a]:[a,b]}
 async function exportPDF(){const [W,H]=pageMM(),cs=await pageCanvases();const pdf=new jspdf.jsPDF({orientation:P.orient=='l'?'landscape':'portrait',unit:'mm',format:P.page.toLowerCase()});
  cs.forEach((c,i)=>{if(i)pdf.addPage();pdf.addImage(c.toDataURL('image/jpeg',0.92),'JPEG',0,0,W,H)});return pdf}
@@ -155,14 +173,20 @@ const LIB='https://vivamusz.github.io/aymaba/';let LIBD=null,libT=null;
 const norm=s=>(s||'').toLowerCase().replace(/ё/g,'е').trim();
 async function libLoad(){if(LIBD)return LIBD;try{const r=await fetch(LIB+'data/cards.json?v=kk1');LIBD=await r.json()}catch(e){LIBD={cards:[],categories:[],err:1}}return LIBD}
 async function libSearch(){const q=norm($('libQ').value),box=$('libRes');const d=await libLoad();
- if(d.err){box.innerHTML='<p class="hint">Библиотека сейчас недоступна. Проверьте интернет.</p>';return}
+ if(d.err){box.innerHTML='<p class="hint">'+U('Библиотека сейчас недоступна. Проверьте интернет.')+'</p>';return}
  const cats=q?d.categories.filter(c=>norm(c.ru).includes(q)||norm(c.kk).includes(q)).map(c=>c.num):[];
  const first=d.categories[0]&&d.categories[0].num;const hits=d.cards.filter(c=>q?(norm(c.ru).includes(q)||norm(c.kk).includes(q)||cats.includes(c.cat)):c.cat===first).sort((a,b)=>(norm(b.ru).startsWith(q))-(norm(a.ru).startsWith(q))).slice(0,48);
- box.innerHTML=hits.length?hits.map(c=>`<button type="button" class="lib-it" data-id="${esc(c.id)}" data-ru="${esc(c.ru)}" data-kk="${esc(c.kk||'')}" title="${esc(LANG==='kz'&&c.kk?c.kk:c.ru)}"><img src="${LIB}cards/${esc(c.id)}.webp" alt="" loading="lazy" draggable="false"><span>${esc(LANG==='kz'&&c.kk?c.kk:c.ru)}</span></button>`).join(''):'<p class="hint">Ничего не нашлось.</p>'}
+ box.innerHTML=hits.length?hits.map(c=>`<button type="button" class="lib-it" data-id="${esc(c.id)}" data-ru="${esc(c.ru)}" data-kk="${esc(c.kk||'')}" title="${esc(LANG==='kz'&&c.kk?c.kk:c.ru)}"><img src="${LIB}cards/${esc(c.id)}.webp" alt="" loading="lazy" draggable="false"><span>${esc(LANG==='kz'&&c.kk?c.kk:c.ru)}</span></button>`).join(''):'<p class="hint">'+U('Ничего не нашлось.')+'</p>'}
 $('libQ').oninput=()=>{clearTimeout(libT);libT=setTimeout(libSearch,200)};$('libQ').onfocus=()=>{if(!$('libRes').children.length)libSearch()};
 $('libRes').onclick=e=>{const it=e.target.closest('.lib-it');if(!it)return;const c=(LIBD&&LIBD.cards||[]).find(x=>x.id===it.dataset.id);if(c)libAdd([c])};
 /* ---- Окно «Из библиотеки»: темы слева, поиск и сетка справа; щелчок — сразу в ячейку, галочки — несколько сразу ---- */
-var UI={kz:{'Из библиотеки':'Кітапханадан','Поиск по слову':'Сөз бойынша іздеу','Закрыть':'Жабу'}};
+var UI={kz:{'Из библиотеки':'Кітапханадан','Поиск по слову':'Сөз бойынша іздеу','Закрыть':'Жабу',
+ 'Добавить выбранные ({n})':'Таңдалғандарын қосу ({n})',
+ 'Нажмите картинку — она сразу встанет в следующую пустую ячейку. Галочками можно отметить несколько.':'Суретті басыңыз — ол келесі бос ұяшыққа бірден орналастырылады. Бірнеше суретті таңдау үшін құсбелгі қойыңыз.',
+ 'Свободных ячеек нет — добавьте строки или листы.':'Бос ұяшық жоқ — жолдар немесе парақтар қосыңыз.',
+ 'Ничего не нашлось.':'Ештеңе табылмады.',
+ 'Отметить':'Белгілеу',
+ 'Библиотека сейчас недоступна. Проверьте интернет.':'Кітапхана қазір қолжетімсіз. Интернет байланысын тексеріңіз.'}};
 function U(s){return LANG==='kz'&&UI&&UI.kz[s]?UI.kz[s]:s}   // только строки с переводом пользователя; остальное — по-русски (см. kz_still_missing.xlsx)
 const capOf=c=>{const s=LANG==='kz'&&c.kk?c.kk:c.ru;return s.charAt(0).toUpperCase()+s.slice(1)};
 const up1=s=>s?s.charAt(0).toUpperCase()+s.slice(1):s;
@@ -172,7 +196,7 @@ function libAdd(list){if(tpl().kind||!list.length)return 0;let n=0;
   if(i<0){if(sel>=0&&list.length===1)i=sel;else return}
   const url=LIB+'print/'+c.id+'.webp';let ix=P.images.indexOf(url);if(ix<0){P.images.push(url);ix=P.images.length-1}
   const cell=P.cells[i];cell.img=ix;cell.ru=up1(c.ru);if(c.kk)cell.kz=up1(c.kk);selImg=ix;n++});
- if(n){showCell();render()}libNote(n<list.length?'Свободных ячеек нет — добавьте строки или листы.':'');return n}
+ if(n){showCell();render()}libNote(n<list.length?U('Свободных ячеек нет — добавьте строки или листы.'):'');return n}
 let LM={cat:null,picked:new Set()};
 function libNote(t){const el=document.getElementById('lmNote');if(el)el.textContent=t}
 function lmBuild(){if($('libModal'))return;const m=document.createElement('div');m.id='libModal';m.className='lm';m.hidden=true;
@@ -189,24 +213,24 @@ function lmBuild(){if($('libModal'))return;const m=document.createElement('div')
   if(libAdd([c])){it.classList.add('added');setTimeout(()=>it.classList.remove('added'),500)}};
  $('lmAdd').onclick=()=>{const list=LIBD.cards.filter(c=>LM.picked.has(c.id));libAdd(list);LM.picked.clear();lmGrid();lmFoot()};
  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('libModal').hidden)lmClose()})}
-function lmTexts(){$('lmTitle').textContent=U('Из библиотеки')+' AYMABA';$('lmClose').textContent=U('Закрыть');$('lmQ').placeholder=U('Поиск по слову');lmFoot()}
-function lmFoot(){const n=LM.picked.size;$('lmAdd').textContent=`Добавить выбранные (${n})`;$('lmAdd').disabled=!n}
+function lmTexts(){$('lmTitle').textContent=U('Из библиотеки')+' AYMABA';$('lmClose').textContent=U('Закрыть');$('lmQ').placeholder=U('Поиск по слову');$('lmHint').textContent=U('Нажмите картинку — она сразу встанет в следующую пустую ячейку. Галочками можно отметить несколько.');lmFoot()}
+function lmFoot(){const n=LM.picked.size;$('lmAdd').textContent=U('Добавить выбранные ({n})').split('{n}').join(n);$('lmAdd').disabled=!n}
 function lmCats(){$('lmCats').innerHTML=LIBD.categories.map(c=>`<button type="button" data-cat="${c.num}" aria-pressed="${c.num===LM.cat&&!$('lmQ').value?'true':'false'}">${esc(LANG==='kz'&&c.kk?c.kk:c.ru)} <small>${LIBD.cards.filter(x=>x.cat===c.num).length}</small></button>`).join('')}
 function lmGrid(){const q=norm($('lmQ').value);let list;
  if(q){const cats=LIBD.categories.filter(c=>norm(c.ru).includes(q)||norm(c.kk).includes(q)).map(c=>c.num);list=LIBD.cards.filter(c=>norm(c.ru).includes(q)||norm(c.kk).includes(q)||cats.includes(c.cat)).sort((a,b)=>(norm(b.ru).startsWith(q)||norm(b.kk).startsWith(q))-(norm(a.ru).startsWith(q)||norm(a.kk).startsWith(q)))}
  else list=LIBD.cards.filter(c=>c.cat===LM.cat);
  lmCats();
- $('lmGrid').innerHTML=list.length?list.map(c=>`<div class="lm-it${LM.picked.has(c.id)?' on':''}" data-id="${esc(c.id)}"><button type="button" class="lm-pic" title="${esc(capOf(c))}"><img src="${LIB}cards/${esc(c.id)}.webp" alt="" loading="lazy" draggable="false"><span>${esc(capOf(c))}</span></button><button type="button" class="lm-chk" role="checkbox" aria-checked="${LM.picked.has(c.id)}" aria-label="${esc(capOf(c))}" title="Отметить">✓</button></div>`).join(''):'<p class="hint">Ничего не нашлось.</p>'}
+ $('lmGrid').innerHTML=list.length?list.map(c=>`<div class="lm-it${LM.picked.has(c.id)?' on':''}" data-id="${esc(c.id)}"><button type="button" class="lm-pic" title="${esc(capOf(c))}"><img src="${LIB}cards/${esc(c.id)}.webp" alt="" loading="lazy" draggable="false"><span>${esc(capOf(c))}</span></button><button type="button" class="lm-chk" role="checkbox" aria-checked="${LM.picked.has(c.id)}" aria-label="${esc(capOf(c))}" title="${esc(U('Отметить'))}">✓</button></div>`).join(''):'<p class="hint">'+U('Ничего не нашлось.')+'</p>'}
 async function lmOpen(){lmBuild();const m=$('libModal');m.hidden=false;document.body.classList.add('lm-open');lmTexts();libNote('');
  $('lmGrid').innerHTML='<p class="hint">…</p>';const d=await libLoad();
- if(d.err){$('lmGrid').innerHTML='<p class="hint">Библиотека сейчас недоступна. Проверьте интернет.</p>';return}
+ if(d.err){$('lmGrid').innerHTML='<p class="hint">'+U('Библиотека сейчас недоступна. Проверьте интернет.')+'</p>';return}
  if(LM.cat==null&&d.categories.length)LM.cat=d.categories[0].num;lmGrid();setTimeout(()=>$('lmQ').focus({preventScroll:true}),30)}
 function lmClose(){$('libModal').hidden=true;document.body.classList.remove('lm-open')}
 function libLang(){libBtns();if($('libModal')&&!$('libModal').hidden){lmTexts();lmGrid()}if($('libRes').children.length&&LIBD)libSearch()}
 function libBtns(){document.querySelectorAll('[data-libbtn]').forEach(b=>{b.lastChild.textContent=' '+U('Из библиотеки')})}
 document.querySelectorAll('[data-libbtn]').forEach(b=>b.onclick=lmOpen);libBtns();
 window.onresize=()=>render();
-try{P=JSON.parse(localStorage.getItem('abaProject'))}catch(e){}if(!P||!P.tpl||P.v!==2||!T.some(t=>t.id==P.tpl))P=newProject(1);syncUI();render();
+try{P=JSON.parse(localStorage.getItem('abaProject'))}catch(e){}if(!P||!P.tpl||P.v!==2||!T.some(t=>t.id==P.tpl))P=newProject(1);syncUI();render();if(document.fonts){document.fonts.ready.then(()=>render());document.fonts.addEventListener&&document.fonts.addEventListener('loadingdone',()=>render())}
 
 
 /* PIN: encrypted, no default in source */
